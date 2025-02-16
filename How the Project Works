@@ -1,0 +1,139 @@
+This project simulates a **Fraud Transaction Detection System** using basic Anti-Money Laundering (AML) rules and Know Your Customer (KYC) data. It detects fraudulent activities based on transaction characteristics, user verification status, and geographical location mismatches. Here's a breakdown of how the system works:
+
+---
+
+### **Workflow of the Project:**
+
+1. **Data Generation and Integration**:
+   - **KYC Data**: Simulated data of customers, including their KYC verification status and registered country.
+   - **Transaction Data**: Simulated transactions, including the transaction amount, the customer making the transaction, the location of the transaction, and the timestamp.
+   
+   These two datasets are then **merged** together, associating each transaction with the respective customer’s KYC status and country.
+
+2. **Fraud Detection Logic**:
+   - **AML Rules**:
+     1. **Large Transactions**: If a transaction amount exceeds a threshold (e.g., $3000), it's flagged as suspicious.
+     2. **Unverified Users**: If a transaction is made by a customer who has not completed KYC verification, it is flagged.
+     3. **Suspicious Locations**: If the location of the transaction is different from the user’s registered country, it is flagged as suspicious.
+   
+   These rules are applied to the transaction data to mark transactions as **fraudulent** if any of these conditions are true.
+
+3. **Machine Learning Model (Optional)**:
+   - A **Random Forest Classifier** model is trained to predict whether a transaction is fraudulent or legitimate based on features like transaction amount, user KYC status, and location mismatch.
+   - The trained model predicts **fraudulent or legitimate** for transactions in the test set.
+   
+4. **Output Generation**:
+   - For each transaction, the system produces a **fraudulent flag** (True/False) indicating whether the transaction is suspicious based on the rules or the machine learning model.
+
+---
+
+### **Inputs of the Project:**
+
+1. **KYC Data**: Customer-related information to determine whether a customer has completed the verification process.
+   - **Columns**: `user_id`, `name`, `kyc_verified`, `country`
+   
+   Example:
+   ```python
+   kyc_data = {
+       'user_id': [101, 102, 103, 104, 105],
+       'name': ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
+       'kyc_verified': [True, True, False, True, False],
+       'country': ['USA', 'UK', 'USA', 'USA', 'UK']
+   }
+   ```
+
+2. **Transaction Data**: A collection of financial transactions made by customers.
+   - **Columns**: `user_id`, `amount`, `location`, `timestamp`
+   
+   Example:
+   ```python
+   transactions_df = {
+       'user_id': [101, 102, 103, 104, 105],
+       'amount': [500, 3000, 100, 4000, 1500],
+       'location': ['USA', 'UK', 'Germany', 'USA', 'India'],
+       'timestamp': [datetime(2025, 2, 15), datetime(2025, 2, 10), datetime(2025, 2, 5), datetime(2025, 2, 7), datetime(2025, 2, 3)]
+   }
+   ```
+
+3. **Fraud Detection Rules**: The logic applied to detect fraudulent transactions based on certain conditions (AML rules). These rules are hardcoded in the system.
+   - **Rule 1**: If a transaction amount is greater than $3000, flag as suspicious.
+   - **Rule 2**: If the user hasn’t completed KYC verification, flag as suspicious.
+   - **Rule 3**: If the transaction location is different from the user’s registered country, flag as suspicious.
+
+4. **Machine Learning Model** (Optional): Features used for training include:
+   - **Features**: `amount`, `large_transaction`, `unverified_user`, `suspicious_location`
+   - **Target**: `fraudulent` (Whether the transaction is fraudulent or not)
+
+---
+
+### **Outputs of the Project:**
+
+1. **Fraudulent Transaction Flag**: After applying AML rules, the system flags transactions as fraudulent if they meet any of the defined suspicious conditions.
+   - **Columns**: `user_id`, `amount`, `location`, `timestamp`, `fraudulent`
+   
+   Example of output:
+   ```python
+   print(fraudulent_df[['user_id', 'amount', 'location', 'timestamp', 'fraudulent']].head())
+   ```
+
+   Sample output:
+   ```python
+   user_id   amount   location    timestamp          fraudulent
+   101       500      USA         2025-02-15         False
+   102       3000     UK          2025-02-10         True
+   103       100      Germany     2025-02-05         False
+   104       4000     USA         2025-02-07         True
+   105       1500     India       2025-02-03         True
+   ```
+
+2. **Machine Learning Model Output** (Optional): After training the model with a dataset, the system predicts whether a transaction is fraudulent or not for the test data.
+   - **Model Output**: A classification of transactions based on their features.
+   
+   Example output (classification report):
+   ```python
+   print(classification_report(y_test, y_pred))
+   ```
+
+   Sample output:
+   ```
+   precision    recall  f1-score   support
+   --------------------------------------------
+   0            0.90    0.85        0.87     150
+   1            0.70    0.75        0.72     100
+   ```
+
+---
+
+### **Explanation of Inputs and Outputs:**
+
+#### **Inputs:**
+- **KYC Data**: This is the customer information that helps the system know whether the customer is verified and where they are from.
+- **Transaction Data**: This is the information about financial transactions made by customers, which will be analyzed for potential fraud.
+- **Fraud Detection Rules**: These are predefined rules that automatically flag suspicious transactions based on certain conditions (e.g., large amounts, unverified users, suspicious locations).
+- **Machine Learning Model** (optional): A model that is trained to classify transactions based on historical data.
+
+#### **Outputs:**
+- **Fraudulent Flag**: For each transaction, the system generates a "fraudulent" flag that indicates whether the transaction is suspicious.
+- **Classification Report** (Optional): If you use machine learning, the system evaluates the performance of the fraud detection model, providing a classification report with precision, recall, and F1-score for the detected fraudulent transactions.
+
+---
+
+### **Summary of the Project Flow:**
+
+1. **Input Data**:
+   - Customer and transaction details are provided to the system, either as real data or synthetic data (as in this case).
+2. **Fraud Detection Logic**:
+   - The system applies AML rules to identify suspicious transactions based on transaction amounts, KYC status, and locations.
+   - If machine learning is used, the model is trained on historical data and used to classify transactions.
+3. **Output**:
+   - Each transaction receives a fraud flag, and optionally, the machine learning model evaluates the fraud detection accuracy.
+
+---
+
+### **Example of How This System Could Be Used:**
+
+Imagine you're working for a bank that processes thousands of transactions every day. By using this system, you can automatically flag suspicious transactions for further investigation:
+- **AML Rule-Based Detection**: The system flags any transaction over $3000 or any transaction from an unverified user as suspicious.
+- **Machine Learning Model**: The system can also predict fraudulent transactions based on patterns learned from historical data, continuously improving its ability to detect fraud.
+
+This helps the bank save time and resources by automatically filtering out suspicious transactions, allowing human investigators to focus on the most critical cases.
