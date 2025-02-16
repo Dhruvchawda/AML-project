@@ -1,0 +1,92 @@
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Step 1: Simulate KYC data
+kyc_data = {
+    'user_id': [101, 102, 103, 104, 105],
+    'name': ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
+    'kyc_verified': [True, True, False, True, False],
+    'country': ['USA', 'UK', 'USA', 'USA', 'UK']
+}
+
+kyc_df = pd.DataFrame(kyc_data)
+
+# Step 2: Simulate transaction data
+np.random.seed(0)
+
+def generate_transactions(n):
+    transaction_data = []
+    for _ in range(n):
+        user_id = np.random.choice(kyc_df['user_id'])
+        amount = np.random.uniform(50, 5000)
+        location = np.random.choice(['USA', 'UK', 'Germany', 'India', 'Canada'])
+        timestamp = datetime.now() - timedelta(days=np.random.randint(1, 30))
+        
+        transaction_data.append({
+            'user_id': user_id,
+            'amount': amount,
+            'location': location,
+            'timestamp': timestamp,
+        })
+    
+    return pd.DataFrame(transaction_data)
+
+transactions_df = generate_transactions(1000)
+
+# Step 3: Merge KYC data with transaction data
+df = pd.merge(transactions_df, kyc_df, on='user_id', how='left')
+
+# Step 4: Define fraud detection logic
+def detect_fraud(df):
+    # Rule 1: Large Transactions (amount > $3000)
+    df['large_transaction'] = df['amount'] > 3000
+    
+    # Rule 2: Unverified Users (no KYC)
+    df['unverified_user'] = df['kyc_verified'] == False
+    
+    # Rule 3: Suspicious Location (transaction location != registered country)
+    df['suspicious_location'] = df['location'] != df['country']
+    
+    # Fraud detection flag: If any rule is True, flag as fraudulent
+    df['fraudulent'] = df[['large_transaction', 'unverified_user', 'suspicious_location']].any(axis=1)
+    
+    return df
+
+# Step 5: Apply fraud detection rules
+fraudulent_df = detect_fraud(df)
+
+# Step 6: Print the fraud detection results
+print("Fraudulent Transactions Based on Rules:")
+print(fraudulent_df[['user_id', 'amount', 'location', 'timestamp', 'fraudulent']].head())
+
+# Step 7: Machine Learning (Optional): Train a Random Forest model for fraud detection
+fraudulent_df['large_transaction'] = fraudulent_df['large_transaction'].astype(int)
+fraudulent_df['unverified_user'] = fraudulent_df['unverified_user'].astype(int)
+fraudulent_df['suspicious_location'] = fraudulent_df['suspicious_location'].astype(int)
+
+# Features and target
+X = fraudulent_df[['amount', 'large_transaction', 'unverified_user', 'suspicious_location']]
+y = fraudulent_df['fraudulent'].astype(int)
+
+# Split into training and test data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train the Random Forest model
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# Step 8: Predict on the test data
+y_pred = model.predict(X_test)
+
+# Step 9: Evaluate the model performance (Optional)
+print("\nClassification Report for Fraud Detection Model:")
+print(classification_report(y_test, y_pred))
+
+# Step 10: Print final fraud detection results (with model)
+fraudulent_df['predicted_fraudulent'] = model.predict(X)
+print("\nFraudulent Transactions Detected by Machine Learning Model:")
+print(fraudulent_df[['user_id', 'amount', 'location', 'timestamp', 'fraudulent', 'predicted_fraudulent']].head())
